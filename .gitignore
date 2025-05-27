@@ -11,3 +11,4 @@ dist
 .vscode/
 # It is generally recommended to commit package-lock.json, but you can uncomment the next line if you want to ignore it
 # package-lock.json
+scripts

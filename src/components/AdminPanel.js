@@ -185,16 +185,16 @@ const AdminPanel = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="admin-panel">
+    <div className="admin-panel px-2 sm:px-6 max-w-full">
       {/* <h1 className="text-2xl font-bold">Admin Panel</h1> */}
       <button
-        className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
+        className="bg-blue-500 text-white px-4 py-2 rounded mb-4 w-full sm:w-auto"
         onClick={() => setShowAddForm((prev) => !prev)}
       >
         {showAddForm ? 'Hide Add Customer Form' : 'Add New Customer'}
       </button>
       {showAddForm && (
-        <form onSubmit={handleFormSubmit} className="flex flex-col gap-2 max-w-md mb-6">
+        <form onSubmit={handleFormSubmit} className="flex flex-col gap-2 max-w-md mb-6 w-full mx-auto">
           <input
             type="text"
             name="name"
@@ -202,7 +202,7 @@ const AdminPanel = () => {
             value={form.name}
             onChange={handleFormChange}
             required
-            className="border p-2 rounded"
+            className="border p-2 rounded w-full"
           />
           <input
             type="text"
@@ -211,7 +211,7 @@ const AdminPanel = () => {
             value={form.phone}
             onChange={handleFormChange}
             required
-            className="border p-2 rounded"
+            className="border p-2 rounded w-full"
           />
           <input
             type="email"
@@ -219,7 +219,7 @@ const AdminPanel = () => {
             placeholder="Email (optional)"
             value={form.email}
             onChange={handleFormChange}
-            className="border p-2 rounded"
+            className="border p-2 rounded w-full"
           />
           <input
             type="number"
@@ -228,10 +228,10 @@ const AdminPanel = () => {
             value={form.purchaseAmount}
             onChange={handleFormChange}
             required
-            className="border p-2 rounded"
+            className="border p-2 rounded w-full"
             min="0"
           />
-          <button type="submit" className="bg-blue-500 text-white p-2 rounded" disabled={formLoading}>
+          <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full" disabled={formLoading}>
             {formLoading ? 'Adding...' : 'Add Customer'}
           </button>
           {formError && <div className="text-red-500">{formError}</div>}
@@ -239,8 +239,8 @@ const AdminPanel = () => {
         </form>
       )}
       <h2 className="text-xl mt-4">Customer Management</h2>
-      <form onSubmit={handleSearch} className="flex gap-2 mb-4 max-w-md">
-        <select value={searchField} onChange={handleSearchFieldChange} className="border p-2 rounded">
+      <form onSubmit={handleSearch} className="flex flex-col sm:flex-row gap-2 mb-4 max-w-md w-full mx-auto">
+        <select value={searchField} onChange={handleSearchFieldChange} className="border p-2 rounded w-full sm:w-auto">
           <option value="name">Name</option>
           <option value="phone">Phone</option>
           <option value="email">Email</option>
@@ -252,59 +252,62 @@ const AdminPanel = () => {
           onChange={handleSearchChange}
           className="border p-2 rounded flex-1"
         />
-        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded" disabled={searching}>
+        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded w-full sm:w-auto" disabled={searching}>
           {searching ? 'Searching...' : 'Search'}
         </button>
         {search && (
-          <button type="button" onClick={handleClearSearch} className="bg-gray-300 text-gray-800 px-4 py-2 rounded">
+          <button type="button" onClick={handleClearSearch} className="bg-gray-300 text-gray-800 px-4 py-2 rounded w-full sm:w-auto">
             Clear
           </button>
         )}
       </form>
-      {/* Pagination Controls */}
-
-      <table className="min-w-full mt-4 border border-gray-300">
-        <thead>
-          <tr className="bg-gray-100">
-            <th className="border px-4 py-2 text-left">ID</th>
-            <th className="border px-4 py-2 text-left">Name</th>
-            <th className="border px-4 py-2 text-left">Email</th>
-            <th className="border px-4 py-2 text-left">Phone</th>
-            <th className="border px-4 py-2 text-left">Credits</th>
-            <th className="border px-4 py-2 text-left">Total Purchases</th>
-            <th className="border px-4 py-2 text-left">Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          {safeCustomers.map(customer => (
-            <tr
-              key={customer._id}
-              className="even:bg-gray-50 cursor-pointer hover:bg-blue-50"
-              onClick={() => handleRowClick(customer)}
-            >
-              <td className="border px-4 py-2 font-mono text-xs">{customer._id}</td>
-              <td className="border px-4 py-2">{customer.name}</td>
-              <td className="border px-4 py-2">{customer.email || '-'}</td>
-              <td className="border px-4 py-2">{customer.phone || '-'}</td>
-              <td className="border px-4 py-2">{customer.loyaltyPoints ?? 0}</td>
-              <td className="border px-4 py-2">{Array.isArray(customer.purchaseHistory) ? customer.purchaseHistory.length : 0}</td>
-              <td className="border px-4 py-2">
-                <button
-                  className="bg-blue-600 text-white px-3 py-1 rounded"
-                  onClick={e => { e.stopPropagation(); handleAddPurchaseClick(customer); }}
-                >
-                  Add Purchase
-                </button>
-              </td>
+      {/* Responsive Table */}
+      <div className="overflow-x-auto w-full">
+        <table className="min-w-full mt-4 border border-gray-300 text-sm">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="border px-2 py-2 text-left whitespace-nowrap">ID</th>
+              <th className="border px-2 py-2 text-left whitespace-nowrap">Name</th>
+              <th className="border px-2 py-2 text-left whitespace-nowrap">Email</th>
+              <th className="border px-2 py-2 text-left whitespace-nowrap">Phone</th>
+              <th className="border px-2 py-2 text-left whitespace-nowrap">Credits</th>
+              <th className="border px-2 py-2 text-left whitespace-nowrap">Total Purchases</th>
+              <th className="border px-2 py-2 text-left whitespace-nowrap">Actions</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
-      <div className="flex items-center gap-4 my-4">
-        <button onClick={handlePrevPage} disabled={page === 1} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Prev</button>
-        <span>Page {page} of {totalPages}</span>
-        <button onClick={handleNextPage} disabled={page === totalPages} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50">Next</button>
-        <select value={pageSize} onChange={handlePageSizeChange} className="border p-1 rounded">
+          </thead>
+          <tbody>
+            {safeCustomers.map(customer => (
+              <tr
+                key={customer._id}
+                className="even:bg-gray-50 cursor-pointer hover:bg-blue-50"
+                onClick={() => handleRowClick(customer)}
+              >
+                <td className="border px-2 py-2 font-mono text-xs max-w-[100px] truncate">{customer._id}</td>
+                <td className="border px-2 py-2 max-w-[120px] truncate">{customer.name}</td>
+                <td className="border px-2 py-2 max-w-[120px] truncate">{customer.email || '-'}</td>
+                <td className="border px-2 py-2 max-w-[100px] truncate">{customer.phone || '-'}</td>
+                <td className="border px-2 py-2">{customer.loyaltyPoints ?? 0}</td>
+                <td className="border px-2 py-2">{Array.isArray(customer.purchaseHistory) ? customer.purchaseHistory.length : 0}</td>
+                <td className="border px-2 py-2">
+                  <button
+                    className="bg-blue-600 text-white px-3 py-1 rounded w-full sm:w-auto"
+                    onClick={e => { e.stopPropagation(); handleAddPurchaseClick(customer); }}
+                  >
+                    Add Purchase
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <div className="flex flex-col sm:flex-row items-center gap-2 my-4 w-full justify-between">
+        <div className="flex gap-2">
+          <button onClick={handlePrevPage} disabled={page === 1} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 w-full sm:w-auto">Prev</button>
+          <button onClick={handleNextPage} disabled={page === totalPages} className="px-3 py-1 bg-gray-200 rounded disabled:opacity-50 w-full sm:w-auto">Next</button>
+        </div>
+        <span className="text-sm">Page {page} of {totalPages}</span>
+        <select value={pageSize} onChange={handlePageSizeChange} className="border p-1 rounded w-full sm:w-auto max-w-[120px]">
           {[5, 10, 20, 50].map(size => (
             <option key={size} value={size}>{size} / page</option>
           ))}

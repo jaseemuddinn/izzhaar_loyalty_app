@@ -118,8 +118,8 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-lg relative">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40 ">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-2xl relative mx-2 sm:mx-auto overflow-y-auto max-h-[90vh]">
                 <button
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl"
                     onClick={onClose}
@@ -137,7 +137,7 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                 <div className="mb-2"><span className="font-semibold">Created At:</span> {customer.createdAt ? new Date(customer.createdAt).toLocaleString() : '-'}</div>
                 <div className="mb-4">
                     <span className="font-semibold">Purchase History:</span>
-                    <ul className="list-disc ml-6 mt-1">
+                    <ul className="list-disc ml-6 mt-1 max-h-40 overflow-y-auto pr-2">
                         {customer.purchaseHistory && customer.purchaseHistory.length > 0 ? (
                             customer.purchaseHistory.map((t, idx) => (
                                 <li key={idx} className="text-sm">
@@ -150,14 +150,14 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                     </ul>
                 </div>
                 {/* Actions: Edit, Add Note, etc. (to be implemented) */}
-                <div className="flex gap-2">
-                    <button className="bg-red-600 text-white px-3 py-1 rounded" onClick={() => setShowDeleteConfirm(true)}>
+                <div className="flex flex-col sm:flex-row gap-2 mt-4">
+                    <button className="bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto" onClick={() => setShowDeleteConfirm(true)}>
                         Delete
                     </button>
-                    <button className="bg-yellow-500 text-white px-3 py-1 rounded" onClick={handleEditClick}>
+                    <button className="bg-yellow-500 text-white px-3 py-1 rounded w-full sm:w-auto" onClick={handleEditClick}>
                         Edit
                     </button>
-                    <button className="bg-green-500 text-white px-3 py-1 rounded" onClick={handleAddNoteClick}>
+                    <button className="bg-green-500 text-white px-3 py-1 rounded w-full sm:w-auto" onClick={handleAddNoteClick}>
                         Add Note
                     </button>
                 </div>

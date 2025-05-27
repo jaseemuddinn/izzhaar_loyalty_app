@@ -20,7 +20,7 @@ const AddPurchaseModal = ({ open, onClose, onAdd, loading }) => {
     if (!open) return null;
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40">
-            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm relative">
+            <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-sm relative mx-2 sm:mx-auto">
                 <button
                     className="absolute top-2 right-2 text-gray-500 hover:text-gray-800 text-xl"
                     onClick={onClose}
@@ -37,18 +37,18 @@ const AddPurchaseModal = ({ open, onClose, onAdd, loading }) => {
                         placeholder="Purchase Amount (₹)"
                         value={amount}
                         onChange={e => setAmount(e.target.value)}
-                        className="border p-2 rounded"
+                        className="border p-2 rounded w-full"
                         required
                     />
                     <textarea
                         placeholder="Note (optional)"
                         value={note}
                         onChange={e => setNote(e.target.value)}
-                        className="border p-2 rounded"
+                        className="border p-2 rounded w-full"
                         rows={2}
                     />
                     {error && <div className="text-red-500 text-sm">{error}</div>}
-                    <button type="submit" className="bg-blue-500 text-white p-2 rounded" disabled={loading}>
+                    <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full" disabled={loading}>
                         {loading ? 'Adding...' : 'Add Purchase'}
                     </button>
                 </form>

@@ -1,9 +1,14 @@
 import React, { useState } from 'react';
 
-const AddPurchaseModal = ({ open, onClose, onAdd, loading }) => {
+const AddPurchaseModal = ({ open, onClose, onAdd, loading, customer }) => {
     const [amount, setAmount] = useState('');
     const [note, setNote] = useState('');
     const [error, setError] = useState('');
+    const [redeemChecked, setRedeemChecked] = useState(false);
+    const [redeemAmount, setRedeemAmount] = useState('');
+
+    const maxCredits = customer?.loyaltyPoints ?? 0;
+    const canRedeem = maxCredits > 0;
 
     const handleSubmit = (e) => {
         e.preventDefault();
@@ -12,9 +17,21 @@ const AddPurchaseModal = ({ open, onClose, onAdd, loading }) => {
             setError('Please enter a valid amount.');
             return;
         }
-        onAdd(Number(amount), note);
+        if (redeemChecked) {
+            if (!redeemAmount || isNaN(redeemAmount) || Number(redeemAmount) <= 0) {
+                setError('Please enter a valid credits amount to redeem.');
+                return;
+            }
+            if (Number(redeemAmount) > maxCredits) {
+                setError('Cannot redeem more credits than available.');
+                return;
+            }
+        }
+        onAdd(Number(amount), note, redeemChecked ? Number(redeemAmount) : 0);
         setAmount('');
         setNote('');
+        setRedeemChecked(false);
+        setRedeemAmount('');
     };
 
     if (!open) return null;
@@ -47,6 +64,36 @@ const AddPurchaseModal = ({ open, onClose, onAdd, loading }) => {
                         className="border p-2 rounded w-full"
                         rows={2}
                     />
+                    <div className="flex items-center gap-2">
+                        <input
+                            type="checkbox"
+                            id="redeemCredits"
+                            checked={redeemChecked}
+                            onChange={e => setRedeemChecked(e.target.checked)}
+                            disabled={!canRedeem}
+                        />
+                        <label htmlFor="redeemCredits" className="text-sm">
+                            Redeem credits/points for this purchase
+                        </label>
+                    </div>
+                    {canRedeem ? (
+                        <span className="ml-2 text-sm text-right text-green-500">(Available: {maxCredits})</span>
+                    ) : (
+                        <span className="ml-2 text-sm text-right text-red-500">(No credits available)</span>
+                    )}
+                    {redeemChecked && (
+                        <input
+                            type="number"
+                            min={canRedeem ? 1 : 0}
+                            max={maxCredits}
+                            step="1"
+                            placeholder={`Credits to Redeem (max ${maxCredits})`}
+                            value={redeemAmount}
+                            onChange={e => setRedeemAmount(e.target.value)}
+                            className="border p-2 rounded w-full"
+                            disabled={!canRedeem}
+                        />
+                    )}
                     {error && <div className="text-red-500 text-sm">{error}</div>}
                     <button type="submit" className="bg-blue-500 text-white p-2 rounded w-full" disabled={loading}>
                         {loading ? 'Adding...' : 'Add Purchase'}

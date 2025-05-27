@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import CustomerDetailsModal from './CustomerDetailsModal';
 import AddPurchaseModal from './AddPurchaseModal';
 
@@ -51,8 +52,10 @@ const AdminPanel = () => {
     try {
       await axios.delete(`/api/customers?id=${id}`);
       setCustomers(customers.filter(customer => customer._id !== id));
+      toast.success('Customer deleted successfully!');
     } catch (err) {
       setError(err.message);
+      toast.error('Failed to delete customer.');
     }
   };
 
@@ -73,14 +76,16 @@ const AdminPanel = () => {
         email: form.email,
         purchaseAmount: Number(form.purchaseAmount),
       });
-      setFormSuccess('Customer added successfully!');
+      // setFormSuccess('Customer added successfully!');
       setForm({ name: '', phone: '', email: '', purchaseAmount: '' });
       // Refresh customer list with correct pagination
       const response = await axios.get(`/api/customers?page=${page}&pageSize=${pageSize}`);
       setCustomers(response.data.customers || []);
       setTotalPages(response.data.totalPages || 1);
+      toast.success('Customer added successfully!');
     } catch (err) {
       setFormError(err.response?.data || err.message);
+      toast.error('Failed to add customer.');
     } finally {
       setFormLoading(false);
     }
@@ -156,7 +161,16 @@ const AdminPanel = () => {
     setSelectedCustomer(null);
   };
 
-  const handleAddPurchase = async (amount, note) => {
+  // Update a single customer in the customers array
+  const updateCustomerInList = (updatedCustomer) => {
+    if (updatedCustomer._deleted) {
+      setCustomers((prev) => prev.filter(c => c._id !== updatedCustomer._id));
+    } else {
+      setCustomers((prev) => prev.map(c => c._id === updatedCustomer._id ? updatedCustomer : c));
+    }
+  };
+
+  const handleAddPurchase = async (amount, note, redeemAmount = 0) => {
     setAddPurchaseLoading(true);
     setAddPurchaseError('');
     setAddPurchaseSuccess('');
@@ -165,14 +179,17 @@ const AdminPanel = () => {
         customerId: selectedCustomer._id,
         amount,
         note,
+        redeemAmount, // Pass redeemAmount to backend
       });
-      setAddPurchaseSuccess('Purchase added successfully!');
       if (res.data && res.data.customer) {
-        window.location.reload();
+        updateCustomerInList(res.data.customer);
+        setSelectedCustomer(res.data.customer);
       }
+      toast.success('Purchase added successfully!');
       setAddPurchaseOpen(false);
     } catch (err) {
       setAddPurchaseError(err.response?.data || err.message);
+      toast.error('Failed to add purchase.');
     } finally {
       setAddPurchaseLoading(false);
     }
@@ -185,7 +202,7 @@ const AdminPanel = () => {
   if (error) return <div>Error: {error}</div>;
 
   return (
-    <div className="admin-panel px-2 sm:px-6 max-w-full">
+    <div className="admin-panel px-2 sm:px-4 max-w-full">
       {/* <h1 className="text-2xl font-bold">Admin Panel</h1> */}
       <button
         className="bg-blue-500 text-white px-4 py-2 rounded mb-4 w-full sm:w-auto"
@@ -313,8 +330,13 @@ const AdminPanel = () => {
           ))}
         </select>
       </div>
-      <CustomerDetailsModal customer={selectedCustomer} open={modalOpen} onClose={handleCloseModal} />
-      <AddPurchaseModal open={addPurchaseOpen} onClose={handleAddPurchaseClose} onAdd={handleAddPurchase} loading={addPurchaseLoading} />
+      <CustomerDetailsModal
+        customer={selectedCustomer}
+        open={modalOpen}
+        onClose={handleCloseModal}
+        onCustomerUpdate={updateCustomerInList}
+      />
+      <AddPurchaseModal open={addPurchaseOpen} onClose={handleAddPurchaseClose} onAdd={handleAddPurchase} loading={addPurchaseLoading} customer={selectedCustomer} />
       {addPurchaseError && <div className="text-red-500 mt-2">{addPurchaseError}</div>}
       {addPurchaseSuccess && <div className="text-green-600 mt-2">{addPurchaseSuccess}</div>}
     </div>

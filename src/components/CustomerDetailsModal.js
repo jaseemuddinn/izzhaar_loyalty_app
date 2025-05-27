@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { toast } from 'react-hot-toast';
 import AddPurchaseModal from './AddPurchaseModal';
 
-const CustomerDetailsModal = ({ customer, open, onClose }) => {
+const CustomerDetailsModal = ({ customer, open, onClose, onCustomerUpdate }) => {
     const [addPurchaseOpen, setAddPurchaseOpen] = useState(false);
     const [addPurchaseLoading, setAddPurchaseLoading] = useState(false);
     const [addPurchaseSuccess, setAddPurchaseSuccess] = useState('');
@@ -19,13 +20,27 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
     const [noteSuccess, setNoteSuccess] = useState('');
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
+    // Keep a local customer state to reflect updates immediately in the modal
+    const [localCustomer, setLocalCustomer] = useState(customer);
+
+    React.useEffect(() => {
+        setLocalCustomer(customer);
+    }, [customer]);
+
     React.useEffect(() => {
         if (customer) {
             setEditData({ name: customer.name || '', email: customer.email || '', phone: customer.phone || '' });
         }
     }, [customer]);
 
-    if (!open || !customer) return null;
+    // Update modal fields when customer prop changes (after update)
+    React.useEffect(() => {
+        if (localCustomer && !editMode) {
+            setEditData({ name: localCustomer.name || '', email: localCustomer.email || '', phone: localCustomer.phone || '' });
+        }
+    }, [localCustomer, editMode]);
+
+    if (!open || !localCustomer) return null;
 
     const handleAddPurchaseClick = () => {
         setAddPurchaseOpen(true);
@@ -37,25 +52,27 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
         setAddPurchaseOpen(false);
     };
 
-    const handleAddPurchase = async (amount, note) => {
+    const handleAddPurchase = async (amount, note, redeemAmount = 0) => {
         setAddPurchaseLoading(true);
         setAddPurchaseError('');
         setAddPurchaseSuccess('');
         try {
             const res = await axios.patch('/api/customers', {
-                customerId: customer._id,
+                customerId: localCustomer._id,
                 amount,
                 note,
+                redeemAmount, // Pass redeemAmount to backend
             });
             setAddPurchaseSuccess('Purchase added successfully!');
-            // Optionally update modal data (refetch or mutate customer)
-            if (res.data && res.data.customer) {
-                // If backend returns updated customer
-                window.location.reload(); // simplest way to refresh data
+            if (res.data && res.data.customer && onCustomerUpdate) {
+                onCustomerUpdate(res.data.customer);
+                setLocalCustomer(res.data.customer);
             }
+            toast.success('Purchase added successfully!');
             setAddPurchaseOpen(false);
         } catch (err) {
             setAddPurchaseError(err.response?.data || err.message);
+            toast.error('Failed to add purchase.');
         } finally {
             setAddPurchaseLoading(false);
         }
@@ -79,16 +96,28 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
         setEditData({ ...editData, [name]: value });
     };
 
+    // After successful update, update modal fields
     const handleEditSave = async () => {
         setEditLoading(true);
         setEditError('');
         setEditSuccess('');
         try {
-            await axios.put('/api/customers', { customerId: customer._id, ...editData });
+            const res = await axios.put('/api/customers', { customerId: localCustomer._id, ...editData });
             setEditSuccess('Customer updated!');
-            window.location.reload();
+            if (res.data && res.data.customer && onCustomerUpdate) {
+                onCustomerUpdate(res.data.customer);
+                setLocalCustomer(res.data.customer);
+                setEditData({
+                    name: res.data.customer.name || '',
+                    email: res.data.customer.email || '',
+                    phone: res.data.customer.phone || ''
+                });
+            }
+            toast.success('Customer updated!');
+            setEditMode(false);
         } catch (err) {
             setEditError(err.response?.data || err.message);
+            toast.error('Failed to update customer.');
         } finally {
             setEditLoading(false);
         }
@@ -106,14 +135,22 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
         setNoteError('');
         setNoteSuccess('');
         try {
-            await axios.patch('/api/customers', { customerId: customer._id, note, addNote: true });
+            const res = await axios.patch('/api/customers', { customerId: localCustomer._id, note, addNote: true });
             setNoteSuccess('Note added!');
-            window.location.reload();
+            if (res.data && res.data.customer && onCustomerUpdate) {
+                onCustomerUpdate(res.data.customer);
+                setLocalCustomer(res.data.customer);
+            } else {
+                // If backend does not return updated customer, update localCustomer manually
+                setLocalCustomer(prev => ({ ...prev, notes: note }));
+            }
+            toast.success('Note added!');
+            setAddNoteOpen(false);
         } catch (err) {
             setNoteError(err.response?.data || err.message);
+            toast.error('Failed to add note.');
         } finally {
             setNoteLoading(false);
-            setAddNoteOpen(false);
         }
     };
 
@@ -128,20 +165,23 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                     ×
                 </button>
                 <h2 className="text-2xl font-bold mb-2">Customer Details</h2>
-                <div className="mb-2"><span className="font-semibold">Name:</span> {customer.name}</div>
-                <div className="mb-2"><span className="font-semibold">Email:</span> {customer.email || '-'}</div>
-                <div className="mb-2"><span className="font-semibold">Phone:</span> {customer.phone || '-'}</div>
-                <div className="mb-2"><span className="font-semibold">Credits:</span> {customer.loyaltyPoints ?? 0}</div>
-                <div className="mb-2"><span className="font-semibold">Tags:</span> {customer.tags?.join(', ') || '-'}</div>
-                <div className="mb-2"><span className="font-semibold">Notes:</span> {customer.notes || '-'}</div>
-                <div className="mb-2"><span className="font-semibold">Created At:</span> {customer.createdAt ? new Date(customer.createdAt).toLocaleString() : '-'}</div>
+                <div className="mb-2"><span className="font-semibold">Name:</span> {localCustomer.name}</div>
+                <div className="mb-2"><span className="font-semibold">Email:</span> {localCustomer.email || '-'}</div>
+                <div className="mb-2"><span className="font-semibold">Phone:</span> {localCustomer.phone || '-'}</div>
+                <div className="mb-2"><span className="font-semibold">Credits:</span> {localCustomer.loyaltyPoints ?? 0}</div>
+                <div className="mb-2"><span className="font-semibold">Tags:</span> {localCustomer.tags?.join(', ') || '-'}</div>
+                <div className="mb-2"><span className="font-semibold">Notes:</span> {localCustomer.notes || '-'}</div>
+                <div className="mb-2"><span className="font-semibold">Created At:</span> {localCustomer.createdAt ? new Date(localCustomer.createdAt).toLocaleString() : '-'}</div>
                 <div className="mb-4">
                     <span className="font-semibold">Purchase History:</span>
                     <ul className="list-disc ml-6 mt-1 max-h-40 overflow-y-auto pr-2">
-                        {customer.purchaseHistory && customer.purchaseHistory.length > 0 ? (
-                            customer.purchaseHistory.map((t, idx) => (
+                        {localCustomer.purchaseHistory && localCustomer.purchaseHistory.length > 0 ? (
+                            localCustomer.purchaseHistory.map((t, idx) => (
                                 <li key={idx} className="text-sm">
-                                    {t.date ? new Date(t.date).toLocaleDateString() : '-'}: ₹{t.amount} {t.pointsEarned ? `- ${t.pointsEarned} pts (${t.note})` : ''}
+                                    {t.date ? new Date(t.date).toLocaleDateString() : '-'}: ₹{t.amount} {t.pointsEarned ? `- ${t.pointsEarned} pts (${t.note || ""}) ` : ''}
+                                    {t.creditsRedeemed ? (
+                                        <span className="text-blue-600 ml-2">(used {t.creditsRedeemed} credits)</span>
+                                    ) : null}
                                 </li>
                             ))
                         ) : (
@@ -149,7 +189,6 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                         )}
                     </ul>
                 </div>
-                {/* Actions: Edit, Add Note, etc. (to be implemented) */}
                 <div className="flex flex-col sm:flex-row gap-2 mt-4">
                     <button className="bg-red-600 text-white px-3 py-1 rounded w-full sm:w-auto" onClick={() => setShowDeleteConfirm(true)}>
                         Delete
@@ -171,9 +210,12 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                                     onClick={async () => {
                                         try {
                                             await axios.delete(`/api/customers?id=${customer._id}`);
-                                            window.location.reload();
+                                            toast.success('Customer deleted successfully!');
+                                            if (onCustomerUpdate) onCustomerUpdate({ ...customer, _deleted: true });
+                                            onClose();
                                         } catch (err) {
                                             setAddPurchaseError('Failed to delete customer.');
+                                            toast.error('Failed to delete customer.');
                                         }
                                     }}
                                 >
@@ -250,7 +292,7 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                         {noteSuccess && <div className="text-green-600 mt-2">{noteSuccess}</div>}
                     </div>
                 )}
-                <AddPurchaseModal open={addPurchaseOpen} onClose={handleAddPurchaseClose} onAdd={handleAddPurchase} loading={addPurchaseLoading} />
+                <AddPurchaseModal open={addPurchaseOpen} onClose={handleAddPurchaseClose} onAdd={handleAddPurchase} loading={addPurchaseLoading} customer={localCustomer} />
                 {addPurchaseError && <div className="text-red-500 mt-2">{addPurchaseError}</div>}
                 {addPurchaseSuccess && <div className="text-green-600 mt-2">{addPurchaseSuccess}</div>}
             </div>

@@ -103,7 +103,7 @@ export async function PUT(request) {
 }
 
 export async function PATCH(request) {
-  const { customerId, amount, note, addNote } = await request.json();
+  const { customerId, amount, note, addNote, redeemAmount } = await request.json();
   if (!customerId) {
     return new Response("Customer ID is required", { status: 400 });
   }
@@ -130,20 +130,30 @@ export async function PATCH(request) {
   }
   // Calculate points for this purchase
   const points = calculateLoyaltyPoints(Number(amount));
+  // Handle redeeming credits
+  let creditsToRedeem = 0;
+  if (redeemAmount && !isNaN(redeemAmount) && Number(redeemAmount) > 0) {
+    creditsToRedeem = Number(redeemAmount);
+    if ((customer.loyaltyPoints ?? 0) < creditsToRedeem) {
+      return new Response("Not enough credits to redeem", { status: 400 });
+    }
+  }
   // Add purchase to history
   const purchase = {
     amount: Number(amount),
     date: new Date(),
     ...(note ? { note } : {}),
     ...(points ? { pointsEarned: points } : {}),
+    ...(creditsToRedeem > 0 ? { creditsRedeemed: creditsToRedeem } : {}),
   };
-  // Update customer
+  // Build update object
+  const updateObj = {
+    $push: { purchaseHistory: purchase },
+    $inc: { loyaltyPoints: points - creditsToRedeem },
+  };
   const updateResult = await db.collection("customers").findOneAndUpdate(
     { _id: customer._id },
-    {
-      $push: { purchaseHistory: purchase },
-      $inc: { loyaltyPoints: points },
-    },
+    updateObj,
     { returnDocument: 'after' }
   );
   return new Response(JSON.stringify({ message: 'Purchase added', customer: updateResult.value }), {

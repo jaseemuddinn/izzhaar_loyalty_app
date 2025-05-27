@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
 import { calculateLoyaltyPoints } from '@/lib/loyaltyLogic';
-import Customer from '@/models/Customer';
+import { db } from '../../../models/Admin';
+import Customer from '../../../models/Customer';
 
 export async function GET(req) {
   try {

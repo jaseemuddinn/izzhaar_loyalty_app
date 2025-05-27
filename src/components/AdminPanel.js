@@ -186,7 +186,7 @@ const AdminPanel = () => {
 
   return (
     <div className="admin-panel">
-      <h1 className="text-2xl font-bold">Admin Panel</h1>
+      {/* <h1 className="text-2xl font-bold">Admin Panel</h1> */}
       <button
         className="bg-blue-500 text-white px-4 py-2 rounded mb-4"
         onClick={() => setShowAddForm((prev) => !prev)}
@@ -271,6 +271,7 @@ const AdminPanel = () => {
             <th className="border px-4 py-2 text-left">Email</th>
             <th className="border px-4 py-2 text-left">Phone</th>
             <th className="border px-4 py-2 text-left">Credits</th>
+            <th className="border px-4 py-2 text-left">Total Purchases</th>
             <th className="border px-4 py-2 text-left">Actions</th>
           </tr>
         </thead>
@@ -286,6 +287,7 @@ const AdminPanel = () => {
               <td className="border px-4 py-2">{customer.email || '-'}</td>
               <td className="border px-4 py-2">{customer.phone || '-'}</td>
               <td className="border px-4 py-2">{customer.loyaltyPoints ?? 0}</td>
+              <td className="border px-4 py-2">{Array.isArray(customer.purchaseHistory) ? customer.purchaseHistory.length : 0}</td>
               <td className="border px-4 py-2">
                 <button
                   className="bg-blue-600 text-white px-3 py-1 rounded"

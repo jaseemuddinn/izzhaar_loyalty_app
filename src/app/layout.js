@@ -12,9 +12,6 @@ export default function RootLayout({ children }) {
       <body>
         <Navbar />
         <main>{children}</main>
-        <footer className="text-center p-4">
-          © {new Date().getFullYear()} Izzhaar. All rights reserved.
-        </footer>
       </body>
     </html>
   );

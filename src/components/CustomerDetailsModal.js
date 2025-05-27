@@ -141,7 +141,7 @@ const CustomerDetailsModal = ({ customer, open, onClose }) => {
                         {customer.purchaseHistory && customer.purchaseHistory.length > 0 ? (
                             customer.purchaseHistory.map((t, idx) => (
                                 <li key={idx} className="text-sm">
-                                    {t.date ? new Date(t.date).toLocaleDateString() : '-'}: ₹{t.amount} {t.pointsEarned ? `- ${t.pointsEarned} pts` : ''}
+                                    {t.date ? new Date(t.date).toLocaleDateString() : '-'}: ₹{t.amount} {t.pointsEarned ? `- ${t.pointsEarned} pts (${t.note})` : ''}
                                 </li>
                             ))
                         ) : (

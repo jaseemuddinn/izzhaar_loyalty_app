@@ -1,4 +1,13 @@
 node_modules
+.next
+out
+coverage
+dist
 .env
-.env.local
-package-lock.json
+.env.*
+*.log
+*.DS_Store
+*.swp
+.vscode/
+# It is generally recommended to commit package-lock.json, but you can uncomment the next line if you want to ignore it
+# package-lock.json

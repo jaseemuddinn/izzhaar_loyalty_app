@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
-import db from '@/lib/db';
 import Admin from '@/models/Admin';
+import { db } from '../../../models/Admin';
 
 export async function GET(req) {
   try {
